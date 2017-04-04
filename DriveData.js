@@ -3,7 +3,7 @@
 // ==UserScript==
 // @name WME DrivesData
 // @namespace http://tampermonkey.net/
-// @version 0.1.45a
+// @version 0.1.55a
 // @description Export Waze Drive Data
 // @include /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/.*$/
 // @grant none
@@ -120,14 +120,12 @@
         console.log("The val delim is -> " + wDDValDelim + " <-- That was it.");
         var wDDSurroundVals = $('#wDDSurroundVals').is(':checked');
         console.log('wDDSurroundVals = ' + wDDSurroundVals);
-        wDDOutput = '';
-        //Do conversion crap
-        $.each(wDDDrivesDataArr, function(i, driveRec) {
-            wDDOutput += (wDDSurroundVals ? '"' : '') + driveRec.startDateObj.format('MM-DD-YYYY') + (wDDSurroundVals ? '"' : '') + wDDValDelim + 
-                    (wDDSurroundVals ? '"' : '') + driveRec.startDateObj.format('hh:mm a') + (wDDSurroundVals ? '"' : '') + wDDValDelim + 
-                    (wDDSurroundVals ? '"' : '') + driveRec.endDateObj.format('hh:mm a') + (wDDSurroundVals ? '"' : '') + wDDValDelim + 
-                    (wDDSurroundVals ? '"' : '') + (driveRec.distance * 0.000621371) + (wDDSurroundVals ? '"' : '') + wDDRecDelim;
-        });
+        wDDOutput = '';      
+        wDDOutput = wDDDrivesDataArr.map(function(driveRec){
+          return [driveRec.startDateObj.format('MM-DD-YYYY'), driveRec.startDateObj.format('hh:mm a'), driveRec.endDateObj.format('hh:mm a'), driveRec.distance * 0.000621371].map(function(value) {
+              return (wDDSurroundVals ? '"' : '') + value + (wDDSurroundVals ? '"' : '');
+          }).join(wDDValDelim);  
+        }).join(wDDRecDelim);
         wDDIsConverted = true;
         console.log(wDDOutput);
         wDDToggleConverting();
