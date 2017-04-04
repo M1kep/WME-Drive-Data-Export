@@ -12,7 +12,6 @@
 
 (function() {
     
-    //Variable used to store the total number of drives, used when querying the server for drive data later.
     var wDDTotalDrives = -1;
     var wDDDrivesDataArr = null;
     var wDDIsLoaded = false;
