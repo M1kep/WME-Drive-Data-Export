@@ -3,11 +3,15 @@
 // ==UserScript==
 // @name WME DrivesData
 // @namespace http://tampermonkey.net/
-// @version 0.1.55a
+// @version 1.1.0b
 // @description Export Waze Drive Data
 // @include /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/.*$/
 // @grant none
 // @require https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js
+// See for https://raw.githubusercontent.com/eligrey/Blob.js/master/LICENSE.md for below library
+// @require https://raw.githubusercontent.com/eligrey/Blob.js/master/Blob.js
+// See https://raw.githubusercontent.com/eligrey/FileSaver.js/master/LICENSE.md for below library
+// @require https://raw.githubusercontent.com/eligrey/FileSaver.js/master/FileSaver.min.js
 // ==/UserScript==
 
 (function() {
@@ -16,6 +20,7 @@
     var wDDDrivesDataArr = null;
     var wDDIsLoaded = false;
     var wDDIsConverted = false;
+    var readyToDownload = false;
     
     var wDDOutput = "";
     
@@ -68,8 +73,34 @@
                         )
                     ),
                     $('<div>').append(
+                        $('<span>').text('Date Format: ').append(
+                            $('<select>', {id: 'wDDDateFormat'}).append(
+                                $('<option>', {value: 'M/D/YYYY'}).text('11/23/2017'),
+                                $('<option>', {value: 'M/M/YY'}).text('11/23/17'),
+                                $('<option>', {value: 'D/M/YYYY'}).text('23/11/2017'),
+                                $('<option>', {value: 'D/M/YY'}).text('23/11/17'),
+                                $('<option>', {value: 'M-D-YYYY'}).text('11-23-2017'),
+                                $('<option>', {value: 'M-D-YY'}).text('11-23-17'),
+                                $('<option>', {value: 'D/M/YYYY'}).text('23-11-2017'),
+                                $('<option>', {value: 'D/M/YY'}).text('23-11-17'),     
+                                $('<option>', {value: 'ddd MMM Do, YYYY'}).text('Thur Nov 23rd, 2017'),
+                                $('<option>', {value: 'dddd MMM Do, YYYY'}).text('Thursday Nov 23rd, 2017'),
+                                $('<option>', {value: 'ddd MMMM Do, YYYY'}).text('Thur November 23rd, 2017'),
+                                $('<option>', {value: 'dddd MMMM Do, YYYY'}).text('Thursday November 23rd, 2017')
+                            )
+                        )
+                    ),
+                    $('<div>').append(
+                        $('<span>').text('Time Format').append(
+                            $('<select>', {id: 'wDDTimeFormat'}).append(
+                                $('<option>', {value: 'hh:mm a'}).text('02:22 pm'),
+                                $('<option>', {value: 'kk:mm'}).text('14:22 pm')
+                            )
+                        )
+                    ),
+                    $('<div>').append(
                         $('<span>').text('Surround Values with " and "?').append(
-                            $('<input>', {id:'wDDSurroundVals', type:'checkbox'})
+                            $('<input>', {id:'wDDSurroundVals', type:'checkbox'}).prop('checked', true)
                         )
                     ),
                     $('<li>').append(
@@ -83,7 +114,10 @@
                         )                    
                     ),
                     $('<li>').append(
-                        $('<input>', {id:'wDDExportButton', type:'button', value:'Export Data', style:'padding: 2.5px 0px'}).prop('disabled', true).click(wDDExportDrives())
+                        $('<input>', {id:'wDDExportButton', type:'button', value:'Export Data', style:'padding: 2.5px 0px'}).prop('disabled', true).click(function() {
+                            readyToDownload = true;
+                            wDDExportDrives();
+                        })
                     )
                 )
             )
@@ -94,10 +128,6 @@
     {
         $.getJSON("https://www.waze.com/Descartes/app/Archive/List?minDistance=1000&offset=" + offset +  "&count=50", function(result){
             $.each(result.archives.objects, function(i, field){
-//                var startDateObj = new Date(0);
-//                startDateObj.setUTCSeconds(field.startTime / 1000);
-//                var endDateObj = new Date(0);
-//                endDateObj.setUTCSeconds(field.endTime / 1000);
                 var startDateObj = moment(field.startTime);
                 var endDateObj = moment(field.endTime);
                 wDDDrivesDataArr[i + offset] = new drive(startDateObj, endDateObj, field.totalRoadMeters);
@@ -120,24 +150,25 @@
         console.log("The val delim is -> " + wDDValDelim + " <-- That was it.");
         var wDDSurroundVals = $('#wDDSurroundVals').is(':checked');
         console.log('wDDSurroundVals = ' + wDDSurroundVals);
-        wDDOutput = '';      
+        wDDOutput = '';  
+        var wDDDateFormat = $('#wDDDateFormat').val();
+        var wDDTimeFormat = $('#wDDTimeFormat').val();
         wDDOutput = wDDDrivesDataArr.map(function(driveRec){
-          return [driveRec.startDateObj.format('MM-DD-YYYY'), driveRec.startDateObj.format('hh:mm a'), driveRec.endDateObj.format('hh:mm a'), driveRec.distance * 0.000621371].map(function(value) {
+          return [driveRec.startDateObj.format(wDDDateFormat), driveRec.startDateObj.format(wDDTimeFormat), driveRec.endDateObj.format(wDDTimeFormat), Math.round(driveRec.distance * 0.000621371 * 100) / 100].map(function(value) {
               return (wDDSurroundVals ? '"' : '') + value + (wDDSurroundVals ? '"' : '');
           }).join(wDDValDelim);  
         }).join(wDDRecDelim);
         wDDIsConverted = true;
         console.log(wDDOutput);
         wDDToggleConverting();
-        alert("Data Converted!\n" + wDDDrivesDataArr[50]);
     }
     
     function wDDExportDrives()
     {
-        if(wDDIsLoaded) {
-            $('#wDDLoadSpinner').hide();
-        } else {
-            $('#wDDLoadSpinner').show();
+        if(readyToDownload){
+            var blob = new Blob([wDDOutput], {type: "text/csv"});
+            saveAs(blob, "driveOutput.csv");
+            readyToDownload = false;
         }
     }
     
@@ -160,25 +191,11 @@
             $('#wDDConvertSpinner').show();
             $('#wDDExportButton').prop('disabled', true);
         }        
-    }//    function wDDToggleLoadingSpinner(spinner) {
-//        switch(spinner) {
-//            case "load":
-//                if(wDDIsLoaded) {
-//                    $('#wDDLoadSpinner').hide();
-//                } else {
-//                    $('#wDDLoadSpinner').show();
-//                }
-//                break;
-//        }
-//    }
+    }
     
     function drive(startDateObj, endDateObj, distance) {
         this.startDateObj = startDateObj;
         this.endDateObj = endDateObj;
         this.distance = distance;
     }
-    
-//    drive.prototype.toString = function() {
-//        return "\"" + this.startDateObj + "\",\"" + this.endDateObj + "\",\"" + this.distance + "\"";
-//    };
 })();
