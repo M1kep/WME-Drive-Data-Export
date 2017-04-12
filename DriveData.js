@@ -4,7 +4,7 @@
 // @name WME DrivesData
 // @author M1kep
 // @namespace m1kep
-// @version 1.0.3
+// @version 1.0.4
 // @description Export Waze Drive Data
 // @include /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/.*$/
 // @grant none
@@ -25,7 +25,7 @@
     var wDDDescartesBaseURL = '';
     
     var wDDDebug = false;
-    var wDDVersion = "1.0.3";
+    var wDDVersion = "1.0.4";
     
     var wDDOutput = '';
     
@@ -42,7 +42,7 @@
     
     function initialize()
     {
-        wDDDescartesBaseURL = 'https://www.waze.com/' + (W.location.code === 'usa' ? '' : W.location.code === 'row' ? 'row-' : 'il-') + 'Descartes/';
+        wDDDescartesBaseURL = 'https://' + window.location.host + '/' + (W.location.code === 'usa' ? '' : W.location.code === 'row' ? 'row-' : 'il-') + 'Descartes/';
         $.getJSON(wDDDescartesBaseURL + 'app/Archive/List?minDistance=1000&count=1', function(result){
             wDDTotalDrives = result.archives.totalSessions;
             wDDDrivesDataArr = new Array(wDDTotalDrives);
