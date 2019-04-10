@@ -4,9 +4,12 @@
 // @name WME DrivesData
 // @author M1kep
 // @namespace m1kep
-// @version 1.0.4
+// @version 1.0.5
 // @description Export Waze Drive Data
-// @include /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/.*$/
+// @include             https://www.waze.com/editor*
+// @include             https://www.waze.com/*/editor*
+// @include             https://beta.waze.com/*
+// @exclude             https://www.waze.com/user/editor*
 // @grant none
 // @require https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js
 // See https://raw.githubusercontent.com/eligrey/Blob.js/master/LICENSE.md for below library
@@ -42,8 +45,8 @@
     
     function initialize()
     {
-        wDDDescartesBaseURL = 'https://' + window.location.host + '/' + (W.location.code === 'usa' ? '' : W.location.code === 'row' ? 'row-' : 'il-') + 'Descartes/';
-        $.getJSON(wDDDescartesBaseURL + 'app/Archive/List?minDistance=1000&count=1', function(result){
+        wDDDescartesBaseURL = 'https://' + window.location.host + W.Config.paths.archive;
+        $.getJSON(wDDDescartesBaseURL + '?minDistance=1000&count=1', function(result){
             wDDTotalDrives = result.archives.totalSessions;
             wDDDrivesDataArr = new Array(wDDTotalDrives);
         });
@@ -147,7 +150,7 @@
     
     function wDDLoadData(offset)
     {
-        $.getJSON(wDDDescartesBaseURL + 'app/Archive/List?minDistance=1000&offset=' + offset +  '&count=50', function(result){
+     $.getJSON(wDDDescartesBaseURL + '?minDistance=1000&offset=' + offset +  '&count=50', function(result){
             $.each(result.archives.objects, function(i, field){
                 var startDateObj = moment(field.startTime);
                 var endDateObj = moment(field.endTime);
