@@ -13,9 +13,9 @@
 // @grant none
 // @require https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js
 // See https://raw.githubusercontent.com/eligrey/Blob.js/master/LICENSE.md for below library
-// @require https://cdn.rawgit.com/eligrey/Blob.js/079824b6c118fbcd0b99c561d57ad192d2c6619b/Blob.js
+// @require https://cdnjs.cloudflare.com/ajax/libs/blob-polyfill/3.0.20180112/Blob.js
 // See https://raw.githubusercontent.com/eligrey/FileSaver.js/master/LICENSE.md for below library
-// @require https://cdn.rawgit.com/eligrey/FileSaver.js/4db4a78aad96b8e9d68316b568a76c5caf9c0225/FileSaver.js
+// @require https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js
 // ==/UserScript==
 
 (function() {
